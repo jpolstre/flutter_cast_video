@@ -10,7 +10,7 @@
         android:label="flutter_cast_video_example"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name=".MainActivity"
+            android:name="it.aesys.flutter_video_cast_example.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar"
