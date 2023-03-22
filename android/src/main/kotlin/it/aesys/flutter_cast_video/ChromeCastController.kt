@@ -1,15 +1,12 @@
 package it.aesys.flutter_cast_video
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
+
 import android.net.Uri
 import android.view.ContextThemeWrapper
 import androidx.mediarouter.app.MediaRouteButton
-import com.google.android.gms.cast.MediaInfo
-import com.google.android.gms.cast.MediaLoadOptions
-import com.google.android.gms.cast.MediaMetadata
-import com.google.android.gms.cast.MediaStatus
-import com.google.android.gms.cast.MediaError
+import com.google.android.gms.cast.*
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.Session
@@ -17,7 +14,7 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.api.PendingResult
-import com.google.android.gms.common.api.ResultCallback
+
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import io.flutter.plugin.common.BinaryMessenger
@@ -41,34 +38,66 @@ class ChromeCastController(
     }
 
     private fun loadMedia(args: Any?) {
-        if (args is Map<*, *>) {
-            val url = args["url"] as? String ?: ""
-            val title = args["title"] as? String ?: ""
-            val subtitle = args["subtitle"] as? String ?: ""
-            val imageUrl = args["image"] as? String ?: ""
-            val contentType = args["contentType"] as? String ?: "videos/mp4"
-            val liveStream = args["live"] as? Boolean ?: false
+//       try {
+           if (args is Map<*, *>) {
+               val url = args["url"] as? String ?: ""
+               val title = args["title"] as? String ?: ""
+               val subtitle = args["subtitle"] as? String ?: ""
+               val imageUrl = args["image"] as? String ?: ""
+               val contentType = args["contentType"] as? String ?: "videos/mp4"
+               val liveStream = args["live"] as? Boolean ?: false
 
-            val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
+               val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
-            val streamType = if (liveStream != null && liveStream) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
+               val streamType = if (liveStream) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
 
-            movieMetadata.putString(MediaMetadata.KEY_TITLE, title)
-            movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, subtitle)
-            movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
-            //movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
+               movieMetadata.putString(MediaMetadata.KEY_TITLE, title)
+               movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, subtitle)
+               movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
+               //movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
 
-            val media = MediaInfo
-                            .Builder(url)
-                            .setStreamType(streamType)
-                            .setContentType(contentType)
-                            .setMetadata(movieMetadata)
-                       .build()
-            val options = MediaLoadOptions.Builder().build()
-            val request = sessionManager?.currentCastSession?.remoteMediaClient?.load(media, options)
+               val media = MediaInfo
+                   .Builder(url)
+                   .setStreamType(streamType)
+                   .setContentType(contentType)
 
-            request?.addStatusListener(this)
-        }
+                   .setMetadata(movieMetadata)
+                   .build()
+               val options = MediaLoadOptions.Builder().build()
+
+//               try {
+                    //la unica forma de cachar el error es abajo en onComplete( de PendingResult.StatusListener)
+                   val request = sessionManager?.currentCastSession?.remoteMediaClient?.load(media, options)
+                    request?.addStatusListener(this)
+//               if(dd == null){
+//                   channel.invokeMethod("chromeCast#requestDidFail", "133333")
+//               }
+
+//                   request?.addStatusListener { if(it.isInterrupted){//cuado falla ....remoteMediaClient?.load(media, options), osea no carga
+//                       println("--not interrupted no load media --")
+//                       channel.invokeMethod("chromeCast#requestDidFail", "133333")
+//                   }   }
+                 //  request?.addStatusListener(this)//esto es de: PendingResult.StatusListener
+//               } catch (e: Throwable) {
+//                   println("-----errorCode eror on load media-----")
+//               }
+
+//               println("-----on load media-----")
+//               val ss=sessionManager?.currentCastSession?.remoteMediaClient?.load(media, options).runCatching {
+//                   this
+//
+//               }.onFailure {
+//                   println("-----errorCode eror on load media-----")
+//
+//               }.getOrThrow()
+//               ss?.addStatusListener(this)
+////               request?.addStatusListener(this)
+           }
+//       }catch (e : Exception){
+//           val errorCode  =   133//my code for load media error
+//           println("-----errorCode eror on load media-----")
+//           channel.invokeMethod("chromeCast#requestDidFail", errorCode)
+//       }
     }
 
     private fun play() {
@@ -111,40 +140,48 @@ class ChromeCastController(
         }
     }
      */
+
+    private val mediaSeekOptionsBuilder:MediaSeekOptions.Builder = MediaSeekOptions.Builder()
+    @SuppressLint("VisibleForTests")
     private fun seek(args: Any?) {
         if (args is Map<*, *>) {
             val relative = (args["relative"] as? Boolean) ?: false
             var interval = args["interval"] as? Double
             interval = interval?.times(1000)
+
+
             if (relative) {
                 interval = interval?.plus(sessionManager?.currentCastSession?.remoteMediaClient?.mediaStatus?.streamPosition ?: 0)
             }
-            val request = sessionManager?.currentCastSession?.remoteMediaClient?.seek(interval?.toLong() ?: 0)
+            val mediaSeekOptions = mediaSeekOptionsBuilder.setPosition(interval?.toLong() ?: 0).build()
+            val request = sessionManager?.currentCastSession?.remoteMediaClient?.seek(mediaSeekOptions)
+//            val request = sessionManager?.currentCastSession?.remoteMediaClient?.seek(interval?.toLong() ?: 0)
             request?.addStatusListener(this)
+
         }
     }
 
-    private fun mediaInfoToMap(mediaInfo: MediaInfo?) : HashMap<String,String>? {
-        var info = HashMap<String, String>()
+    private fun mediaInfoToMap(mediaInfo: MediaInfo?) : HashMap<String,String> {
+        val info = HashMap<String, String>()
         mediaInfo?.let {
-            var id = mediaInfo.getContentId() ?: ""
+            val id = mediaInfo.contentId
             info["id"] = id
-                info["url"] = mediaInfo.getContentUrl() ?: id
-            info["contentType"] = mediaInfo.getContentType()  ?: ""
+                info["url"] = mediaInfo.contentUrl ?: id
+            info["contentType"] = mediaInfo.contentType ?: ""
             // info["customData"] = mediaInfo.getCustomData().toString() ?: ""
-            var meta = mediaInfo.getMetadata()
+            val meta = mediaInfo.metadata
             meta?.let {
                 info["title"] = meta.getString(MediaMetadata.KEY_TITLE) ?: ""
                 info["subtitle"] = meta.getString(MediaMetadata.KEY_SUBTITLE) ?: ""
-                val imgs = meta.getImages()
+                val imgs = meta.images
                 if (imgs.size > 0){
-                    info["image"] = imgs[0].getUrl().toString();
+                    info["image"] = imgs[0].url.toString()
                 }
             }
         }
-        return info;
+        return info
     }
-    private fun getMediaInfo() : HashMap<String,String>? =  mediaInfoToMap(sessionManager?.currentCastSession?.remoteMediaClient?.getMediaInfo())
+    private fun getMediaInfo() : HashMap<String,String> =  mediaInfoToMap(sessionManager?.currentCastSession?.remoteMediaClient?.mediaInfo)
 
 
     private fun setVolume(args: Any?) {
@@ -181,27 +218,33 @@ class ChromeCastController(
     }
 
     private val mRemoteMediaClientListener: RemoteMediaClient.Callback = object : RemoteMediaClient.Callback() {
+        @SuppressLint("VisibleForTests")
         override fun onStatusUpdated() {
             val mediaStatus: MediaStatus? = sessionManager?.currentCastSession?.remoteMediaClient?.mediaStatus
+
+
             val playerStatus: Int = mediaStatus?.playerState ?: MediaStatus.PLAYER_STATE_UNKNOWN
-            var retCode: Int = playerStatus
-            if (playerStatus == MediaStatus.PLAYER_STATE_PLAYING) {
-                retCode = 1
+            val retCode: Int = if (playerStatus == MediaStatus.PLAYER_STATE_PLAYING) {
+                1
             } else if (playerStatus == MediaStatus.PLAYER_STATE_BUFFERING) {
-                retCode = 0
-            } else if (playerStatus == MediaStatus.PLAYER_STATE_IDLE && mediaStatus?.getIdleReason() === MediaStatus.IDLE_REASON_FINISHED) {
-                retCode = 2
+                0
+            } else if (playerStatus == MediaStatus.PLAYER_STATE_IDLE && mediaStatus?.idleReason == MediaStatus.IDLE_REASON_FINISHED) {
+                2
             }else if (playerStatus == MediaStatus.PLAYER_STATE_PAUSED){
-                retCode = 3
+                3
             }else {
-                retCode = 4 //error or unkonwn
+                4 //error or unkonwn
             }
             channel.invokeMethod("chromeCast#didPlayerStatusUpdated", retCode)
         }
+        //no funchona al hacer
         override fun onMediaError(mediaError: MediaError){
-            var errorCode: Int = mediaError.getDetailedErrorCode() ?: 100
-            channel.invokeMethod("chromeCast#didPlayerStatusUpdated", errorCode)
+            val errorCode: Int = mediaError.detailedErrorCode ?: 100
+//            println("onMediaError--->$mediaError")
+//            channel.invokeMethod("chromeCast#didPlayerStatusUpdated", errorCode)
+            channel.invokeMethod("chromeCast#requestDidFail", errorCode.toString())
         }
+
     }
 
     override fun getView() = chromeCastButton
@@ -216,7 +259,11 @@ class ChromeCastController(
         when(call.method) {
             "chromeCast#wait" -> result.success(null)
             "chromeCast#loadMedia" -> {
-                loadMedia(call.arguments)
+//                try {
+                    loadMedia(call.arguments)
+//                }catch (e:Exception){
+//                    println("excepcion ocurrida $e")
+//                }
                 result.success(null)
             }
             "chromeCast#play" -> {
@@ -264,7 +311,7 @@ class ChromeCastController(
 
     override fun onSessionStarted(p0: Session, p1: String) {
         if(p0 is CastSession) {
-            p0.remoteMediaClient?.registerCallback(mRemoteMediaClientListener);
+            p0.remoteMediaClient?.registerCallback(mRemoteMediaClientListener)
         }
         channel.invokeMethod("chromeCast#didStartSession", null)
     }
@@ -301,11 +348,20 @@ class ChromeCastController(
 
     }
 
+
     // PendingResult.StatusListener
 
+    // pertenece a la clase PendingResult.StatusListener
     override fun onComplete(status: Status) {
-        if (status.isSuccess == true) {
+        if (status.isSuccess) {
             channel.invokeMethod("chromeCast#requestDidComplete", null)
+        }
+
+        else if(status.isCanceled){
+            println("--status.isCanceled--")//
+        }else{
+            channel.invokeMethod("chromeCast#requestDidFail", "333333")
+            println("--status.isInterrupted--")
         }
     }
 }

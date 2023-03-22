@@ -162,7 +162,7 @@ class _CastSampleState extends State<CastSample> {
     resetTimer();
 
     _controller.loadMedia(
-        'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+        'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master2.m3u8',
         title: "TestTitle",
         subtitle: "test Sub title",
         image:
@@ -227,9 +227,9 @@ class _CastSampleState extends State<CastSample> {
   }
 
   Future<void> _onRequestFailed(String? error) async {
-    print("_onRequestFailed");
+    print("_onRequestFailed---$error");
     setState(() => _state = AppState.error);
-    print(error);
+    // print(error);
   }
 }
 

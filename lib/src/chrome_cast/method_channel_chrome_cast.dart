@@ -76,7 +76,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   }
 
   @override
-  Future<void> loadMedia(String url, String title, String subtitle, String image, {bool? live, required int id}) {
+  Future<void> loadMedia(
+      String url, String title, String subtitle, String image,
+      {bool? live, required int id}) {
     final Map<String, dynamic> args = {
       'url': url,
       'title': title,
@@ -113,8 +115,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   }
 
   @override
-  Future<Map<dynamic,dynamic>?> getMediaInfo({required int id}) async {
-    return (await channel(id)!.invokeMethod<Map<dynamic,dynamic>?>('chromeCast#getMediaInfo'));
+  Future<Map<dynamic, dynamic>?> getMediaInfo({required int id}) async {
+    return (await channel(id)!
+        .invokeMethod<Map<dynamic, dynamic>?>('chromeCast#getMediaInfo'));
   }
 
   @override
@@ -171,16 +174,15 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
         _eventStreamController.add(RequestDidCompleteEvent(id));
         break;
       case 'chromeCast#requestDidFail':
-        _eventStreamController
-            .add(RequestDidFailEvent(id, call.arguments['error']));
+        // print('chromeCast#requestDidFail');
+        _eventStreamController.add(
+            RequestDidFailEvent(id, call.arguments as String?)); //?['error']
         break;
       case 'chromeCast#didPlayerStatusUpdated':
         var arg = 0;
-        if(call.arguments is int?)
-          arg = call.arguments ?? 0;
+        if (call.arguments is int?) arg = call.arguments ?? 0;
 
-        _eventStreamController
-            .add(PlayerStatusDidUpdatedEvent(id, arg));
+        _eventStreamController.add(PlayerStatusDidUpdatedEvent(id, arg));
         break;
       default:
         throw MissingPluginException();
