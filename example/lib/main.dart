@@ -226,9 +226,17 @@ class _CastSampleState extends State<CastSample> {
     });
   }
 
-  Future<void> _onRequestFailed(String? error) async {
-    print("_onRequestFailed---$error");
-    setState(() => _state = AppState.error);
+//revisar https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED, parasaber mas coodigos de error.
+  Future<void> _onRequestFailed(String? errorCode) async {
+    print(
+        "_onRequestFailed---$errorCode"); //2100 Código de estado que indica que se produjo un error en la solicitud en curso.
+    setState(() {
+      if (errorCode == "2100") {
+        _state = AppState.mediaLoaded;
+      } else {
+        _state = AppState.error;
+      }
+    });
     // print(error);
   }
 }
@@ -250,4 +258,4 @@ class _RoundIconButton extends StatelessWidget {
   }
 }
 
-enum AppState { idle, connected, mediaLoaded, error }
+enum AppState { idle, connected, mediaLoaded, error, errorMediaLoad }

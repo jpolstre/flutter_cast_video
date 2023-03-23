@@ -353,15 +353,29 @@ class ChromeCastController(
 
     // pertenece a la clase PendingResult.StatusListener
     override fun onComplete(status: Status) {
+
         if (status.isSuccess) {
+            //println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
             channel.invokeMethod("chromeCast#requestDidComplete", null)
+        }else{//isCanceled and isInterrupt
+            //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(loadMedia) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
+            //status.statusCode
+           // println("--status.statusCode fail-- ${ status.statusCode.toString()}")//2100 Código de estado que indica que se produjo un error en la solicitud en curso.
+            channel.invokeMethod("chromeCast#requestDidFail", status.statusCode.toString())//2100
+
         }
 
-        else if(status.isCanceled){
-            println("--status.isCanceled--")//
-        }else{
-            channel.invokeMethod("chromeCast#requestDidFail", "333333")
-            println("--status.isInterrupted--")
-        }
+//        else if(status.isCanceled){
+//            println("--status.statusCode fail isCanceled-- ${ status.statusCode.toString()}")
+//            println("--status.isCanceled--")//
+//
+//            channel.invokeMethod("chromeCast#requestDidFail", status.statusCode.toString())
+//        }else{
+//            //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(loadMedia) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
+//            //status.statusCode
+//            println("--status.statusCode fail isInterrupt-- ${ status.statusCode.toString()}")//2100 Código de estado que indica que se produjo un error en la solicitud en curso.
+//            channel.invokeMethod("chromeCast#requestDidFail", status.statusCode.toString())//2100
+//
+//        }
     }
 }
