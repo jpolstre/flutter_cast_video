@@ -171,7 +171,8 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
         _eventStreamController.add(SessionEndedEvent(id));
         break;
       case 'chromeCast#requestDidComplete':
-        _eventStreamController.add(RequestDidCompleteEvent(id));
+        _eventStreamController
+            .add(RequestDidCompleteEvent(id, call.arguments as String?));
         break;
       case 'chromeCast#requestDidFail':
         // print('chromeCast#requestDidFail');

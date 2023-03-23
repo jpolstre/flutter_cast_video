@@ -10,21 +10,22 @@ typedef OnPlayerStatusUpdated = void Function(int statusCode);
 
 /// Callback method for when a request has failed.
 typedef void OnRequestFailed(String? error);
+typedef void OnRequestCompleted(String? myCodeSuccess);
 
 /// Widget that displays the ChromeCast button.
 class ChromeCastButton extends StatelessWidget {
   /// Creates a widget displaying a ChromeCast button.
-  ChromeCastButton({
-    Key? key,
-    this.size = 30.0,
-    this.color = Colors.black,
-    this.onButtonCreated,
-    this.onSessionStarted,
-    this.onSessionEnded,
-    this.onRequestCompleted,
-    this.onRequestFailed,
-    this.onPlayerStatusUpdated
-  })  : assert(
+  ChromeCastButton(
+      {Key? key,
+      this.size = 30.0,
+      this.color = Colors.black,
+      this.onButtonCreated,
+      this.onSessionStarted,
+      this.onSessionEnded,
+      this.onRequestCompleted,
+      this.onRequestFailed,
+      this.onPlayerStatusUpdated})
+      : assert(
             defaultTargetPlatform == TargetPlatform.iOS ||
                 defaultTargetPlatform == TargetPlatform.android,
             '$defaultTargetPlatform is not supported by this plugin'),
@@ -49,7 +50,7 @@ class ChromeCastButton extends StatelessWidget {
   final VoidCallback? onSessionEnded;
 
   /// Called when a cast request has successfully completed.
-  final VoidCallback? onRequestCompleted;
+  final OnRequestCompleted? onRequestCompleted;
 
   /// Called when a cast request has failed.
   final OnRequestFailed? onRequestFailed;
@@ -90,7 +91,7 @@ class ChromeCastButton extends StatelessWidget {
     if (onRequestCompleted != null) {
       _chromeCastPlatform
           .onRequestCompleted(id: id)
-          .listen((_) => onRequestCompleted!());
+          .listen((event) => onRequestCompleted!(event.myCodeSuccess));
     }
     if (onRequestFailed != null) {
       _chromeCastPlatform

@@ -47,6 +47,8 @@ class ChromeCastController(
                val contentType = args["contentType"] as? String ?: "videos/mp4"
                val liveStream = args["live"] as? Boolean ?: false
 
+               urlMedia = url
+
                val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
                val streamType = if (liveStream) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
@@ -254,11 +256,13 @@ class ChromeCastController(
     }
 
     // Flutter methods handling
-
+    private var urlMedia:String? = null
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+          urlMedia = null
         when(call.method) {
             "chromeCast#wait" -> result.success(null)
             "chromeCast#loadMedia" -> {
+
 //                try {
                     loadMedia(call.arguments)
 //                }catch (e:Exception){
@@ -356,7 +360,7 @@ class ChromeCastController(
 
         if (status.isSuccess) {
             //println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
-            channel.invokeMethod("chromeCast#requestDidComplete", null)
+            channel.invokeMethod("chromeCast#requestDidComplete", urlMedia)
         }else{//isCanceled and isInterrupt
             //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(loadMedia) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
             //status.statusCode

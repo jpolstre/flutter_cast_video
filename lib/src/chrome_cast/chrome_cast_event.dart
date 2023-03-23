@@ -26,8 +26,10 @@ class SessionEndedEvent extends ChromeCastEvent {
 
 /// An event fired when a request of a [id] completed.
 class RequestDidCompleteEvent extends ChromeCastEvent {
+  final String? myCodeSuccess;
+
   /// Build a RequestDidComplete Event triggered from the button represented by `id`.
-  RequestDidCompleteEvent(int id) : super(id);
+  RequestDidCompleteEvent(int id, this.myCodeSuccess) : super(id);
 }
 
 /// An event fired when a player status of a [id] updated.

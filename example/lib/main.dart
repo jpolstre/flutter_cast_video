@@ -135,7 +135,14 @@ class _CastSampleState extends State<CastSample> {
       Text(duration2String(position) + '/' + duration2String(duration)),
       Text(jsonEncode(_mediaInfo)),
       SizedBox(height: 20),
-      TextButton(onPressed: changeMedia, child: Text("change media"))
+      TextButton(
+          onPressed: () => _loadMedia(
+              'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+              title: "TestTitle",
+              subtitle: "test Sub title",
+              image:
+                  "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+          child: Text("change media"))
     ]);
   }
 
@@ -156,17 +163,17 @@ class _CastSampleState extends State<CastSample> {
     }
   }
 
-  void changeMedia() {
+  String? currUrlMedia;
+  Future<void> _loadMedia(String url,
+      {required String title,
+      required String subtitle,
+      required String image}) async {
     position = null;
     duration = null;
     resetTimer();
-
-    _controller.loadMedia(
-        'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master2.m3u8',
-        title: "TestTitle",
-        subtitle: "test Sub title",
-        image:
-            "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
+    currUrlMedia = url;
+    await _controller.loadMedia(url,
+        title: title, subtitle: subtitle, image: image);
   }
 
   void resetTimer() {
@@ -204,7 +211,8 @@ class _CastSampleState extends State<CastSample> {
   Future<void> _onSessionStarted() async {
     print("_onRequestCompleted $_state");
     setState(() => _state = AppState.connected);
-    await _controller.loadMedia(
+
+    await _loadMedia(
         'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         title: "TestTitle",
         subtitle: "test Sub title",
@@ -212,18 +220,21 @@ class _CastSampleState extends State<CastSample> {
             "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
   }
 
-  Future<void> _onRequestCompleted() async {
-    final playing = await _controller.isPlaying();
-    if (playing == null) return;
-    final mediaInfo = await _controller.getMediaInfo();
-    setState(() {
-      _state = AppState.mediaLoaded;
-      _playing = playing;
-      if (mediaInfo != null) {
-        _mediaInfo = mediaInfo;
-      }
-      print("_onRequestCompleted $_state");
-    });
+  Future<void> _onRequestCompleted(String? urlMedia) async {
+    print('myCodeSucess--->$urlMedia');
+    if (urlMedia != null && currUrlMedia == urlMedia) {
+      final playing = await _controller.isPlaying();
+      if (playing == null) return;
+      final mediaInfo = await _controller.getMediaInfo();
+      setState(() {
+        _state = AppState.mediaLoaded;
+        _playing = playing;
+        if (mediaInfo != null) {
+          _mediaInfo = mediaInfo;
+        }
+        print("_onRequestCompleted $_state");
+      });
+    }
   }
 
 //revisar https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED, parasaber mas coodigos de error.
