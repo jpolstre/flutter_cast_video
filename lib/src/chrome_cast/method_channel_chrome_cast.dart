@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cast_video/flutter_cast_video.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_platform.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -68,6 +69,11 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   @override
   Stream<RequestDidFailEvent> onRequestFailed({int? id}) {
     return _events(id).whereType<RequestDidFailEvent>();
+  }
+
+  @override
+  Stream<RequestDidOnLoadMedia> onRequestLoadMedia({int? id}) {
+    return _events(id).whereType<RequestDidOnLoadMedia>();
   }
 
   @override
@@ -172,12 +178,18 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
         break;
       case 'chromeCast#requestDidComplete':
         _eventStreamController
-            .add(RequestDidCompleteEvent(id, call.arguments as String?));
+            .add(RequestDidCompleteEvent(id, call.arguments as int?));
         break;
       case 'chromeCast#requestDidFail':
         // print('chromeCast#requestDidFail');
+        _eventStreamController
+            .add(RequestDidFailEvent(id, call.arguments as int?)); //?['error']
+        break;
+
+      case 'chromeCast#requestLoadMedia':
+        // print('chromeCast#requestDidFail');
         _eventStreamController.add(
-            RequestDidFailEvent(id, call.arguments as String?)); //?['error']
+            RequestDidOnLoadMedia(id, call.arguments as int?)); //?['error']
         break;
       case 'chromeCast#didPlayerStatusUpdated':
         var arg = 0;

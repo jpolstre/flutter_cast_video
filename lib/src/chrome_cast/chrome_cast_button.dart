@@ -9,23 +9,26 @@ typedef OnButtonCreated = void Function(ChromeCastController controller);
 typedef OnPlayerStatusUpdated = void Function(int statusCode);
 
 /// Callback method for when a request has failed.
-typedef void OnRequestFailed(String? error);
-typedef void OnRequestCompleted(String? myCodeSuccess);
+typedef void OnRequestFailed(int? codeError);
+typedef void OnLoadMedia(int? codeResult);
+typedef void OnRequestCompleted(int? codeOncomplete);
+typedef void OnRequestLoadMedia(int? codeResult);
 
 /// Widget that displays the ChromeCast button.
 class ChromeCastButton extends StatelessWidget {
   /// Creates a widget displaying a ChromeCast button.
-  ChromeCastButton(
-      {Key? key,
-      this.size = 30.0,
-      this.color = Colors.black,
-      this.onButtonCreated,
-      this.onSessionStarted,
-      this.onSessionEnded,
-      this.onRequestCompleted,
-      this.onRequestFailed,
-      this.onPlayerStatusUpdated})
-      : assert(
+  ChromeCastButton({
+    Key? key,
+    this.size = 30.0,
+    this.color = Colors.black,
+    this.onButtonCreated,
+    this.onSessionStarted,
+    this.onSessionEnded,
+    this.onRequestCompleted,
+    this.onRequestFailed,
+    this.onPlayerStatusUpdated,
+    this.onRequestLoadMedia,
+  })  : assert(
             defaultTargetPlatform == TargetPlatform.iOS ||
                 defaultTargetPlatform == TargetPlatform.android,
             '$defaultTargetPlatform is not supported by this plugin'),
@@ -54,6 +57,9 @@ class ChromeCastButton extends StatelessWidget {
 
   /// Called when a cast request has failed.
   final OnRequestFailed? onRequestFailed;
+
+  /// Called when a loadMedia complete.
+  final OnRequestLoadMedia? onRequestLoadMedia;
 
   /// Called when player status updated
   final OnPlayerStatusUpdated? onPlayerStatusUpdated;
@@ -91,12 +97,17 @@ class ChromeCastButton extends StatelessWidget {
     if (onRequestCompleted != null) {
       _chromeCastPlatform
           .onRequestCompleted(id: id)
-          .listen((event) => onRequestCompleted!(event.myCodeSuccess));
+          .listen((event) => onRequestCompleted!(event.codeOncomplete));
     }
     if (onRequestFailed != null) {
       _chromeCastPlatform
           .onRequestFailed(id: id)
-          .listen((event) => onRequestFailed!(event.error));
+          .listen((event) => onRequestFailed!(event.codeError));
+    }
+    if (onRequestLoadMedia != null) {
+      _chromeCastPlatform
+          .onRequestLoadMedia(id: id)
+          .listen((event) => onRequestLoadMedia!(event.codeResult));
     }
     if (onPlayerStatusUpdated != null) {
       _chromeCastPlatform

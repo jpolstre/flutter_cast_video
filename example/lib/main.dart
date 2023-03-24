@@ -58,6 +58,8 @@ class _CastSampleState extends State<CastSample> {
             onSessionEnded: () => setState(() => _state = AppState.idle),
             onRequestCompleted: _onRequestCompleted,
             onRequestFailed: _onRequestFailed,
+            onRequestLoadMedia: _onRequestLoadMedia,
+            onPlayerStatusUpdated: _onPlayerStatusUpdated,
           ),
         ],
       ),
@@ -77,13 +79,45 @@ class _CastSampleState extends State<CastSample> {
         resetTimer();
         return Text('ChromeCast not connected');
       case AppState.connected:
-        return Text('No media loaded');
+      case AppState.error:
+      case AppState.errorMediaLoad:
+        return Column(
+          children: [
+            SizedBox(height: 24),
+            if (_state == AppState.error || _state == AppState.errorMediaLoad)
+              Text('An error has occurred'),
+            SizedBox(height: 24),
+            TextButton(
+                onPressed: () => _loadMedia(
+                    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                    title: "TestTitle",
+                    subtitle: "test Sub title",
+                    image:
+                        "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                child: Text("load media")),
+            SizedBox(
+              height: 24,
+            ),
+            TextButton(
+                onPressed: () => _loadMedia(
+                    'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+                    title: "TestTitle",
+                    subtitle: "test Sub title",
+                    image:
+                        "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                child: Text("change media"))
+          ],
+        ); //Text('No media loaded');
       case AppState.mediaLoaded:
         startTimer();
         return _mediaControls();
-      case AppState.error:
-        resetTimer();
-        return Text('An error has occurred');
+      // case AppState.error:
+      //   resetTimer();
+      //   return Text('An error has occurred');
+
+      // case AppState.errorMediaLoad:
+      //   resetTimer();
+      //   return Text('An error has occurred');
       default:
         return Container();
     }
@@ -102,9 +136,16 @@ class _CastSampleState extends State<CastSample> {
                 onPressed: () =>
                     _controller.seek(relative: true, interval: -10.0),
               ),
-              _RoundIconButton(
-                  icon: _playing ? Icons.pause : Icons.play_arrow,
-                  onPressed: _playPause),
+              if (_statusPlayer != StatusPlayer.finished.val)
+                _RoundIconButton(
+                    icon: _playing ? Icons.pause : Icons.play_arrow,
+                    onPressed: _playPause)
+              else
+                _RoundIconButton(
+                  icon: Icons.replay_outlined,
+                  onPressed: () =>
+                      _controller.seek(relative: false, interval: 0.0),
+                ),
               _RoundIconButton(
                 icon: Icons.forward_10,
                 onPressed: () =>
@@ -134,6 +175,20 @@ class _CastSampleState extends State<CastSample> {
       ),
       Text(duration2String(position) + '/' + duration2String(duration)),
       Text(jsonEncode(_mediaInfo)),
+      SizedBox(height: 20),
+      if (_statusPlayer == StatusPlayer.buffering.val ||
+          _statusPlayer == StatusPlayer.loading.val ||
+          _statusPlayer == StatusPlayer.initLoading.val)
+        LinearProgressIndicator(color: Colors.green),
+      SizedBox(height: 20),
+      TextButton(
+          onPressed: () => _loadMedia(
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              title: "TestTitle",
+              subtitle: "test Sub title",
+              image:
+                  "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+          child: Text("load media")),
       SizedBox(height: 20),
       TextButton(
           onPressed: () => _loadMedia(
@@ -168,6 +223,9 @@ class _CastSampleState extends State<CastSample> {
       {required String title,
       required String subtitle,
       required String image}) async {
+    setState(() {
+      _statusPlayer = StatusPlayer.initLoading.val;
+    });
     position = null;
     duration = null;
     resetTimer();
@@ -212,17 +270,35 @@ class _CastSampleState extends State<CastSample> {
     print("_onRequestCompleted $_state");
     setState(() => _state = AppState.connected);
 
-    await _loadMedia(
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        title: "TestTitle",
-        subtitle: "test Sub title",
-        image:
-            "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
+    // await _loadMedia(
+    //     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    //     title: "TestTitle",
+    //     subtitle: "test Sub title",
+    //     image:
+    //         "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
   }
 
-  Future<void> _onRequestCompleted(String? urlMedia) async {
-    print('myCodeSucess--->$urlMedia');
-    if (urlMedia != null && currUrlMedia == urlMedia) {
+  var _statusPlayer = 4;
+  Future<void> _onPlayerStatusUpdated(int? statusCode) async {
+    // 1 = playing
+    // 0 = buffering
+    // 5 = loading
+    // 2 = finished
+    // 3 = paused
+    // 4 = unknown
+    print('statusCodexxx--->$statusCode');
+    if (statusCode == StatusPlayer.finished.val) {
+      _controller.pause();
+    }
+    setState(() {
+      _statusPlayer = statusCode ?? 4;
+    });
+    // print('statusCode loading--->${statusCode == StatusPlayer.loading.val}');
+  }
+
+  Future<void> _onRequestLoadMedia(int? codeResult) async {
+    print('_onRequestLoadMedia--->$codeResult');
+    if (codeResult == 0) {
       final playing = await _controller.isPlaying();
       if (playing == null) return;
       final mediaInfo = await _controller.getMediaInfo();
@@ -232,22 +308,47 @@ class _CastSampleState extends State<CastSample> {
         if (mediaInfo != null) {
           _mediaInfo = mediaInfo;
         }
-        print("_onRequestCompleted $_state");
+      });
+    } else {
+      setState(() {
+        if (codeResult == 2100) {
+          _state = AppState.errorMediaLoad;
+        } else {
+          _state = AppState.error;
+        }
       });
     }
   }
 
+  Future<void> _onRequestCompleted(int? codeOncomplete) async {
+    // print('myCodeSucess--->$urlMedia');
+
+    // if (urlMedia != null && currUrlMedia == urlMedia) {
+    //   final playing = await _controller.isPlaying();
+    //   if (playing == null) return;
+    //   final mediaInfo = await _controller.getMediaInfo();
+    //   setState(() {
+    //     _state = AppState.mediaLoaded;
+    //     _playing = playing;
+    //     if (mediaInfo != null) {
+    //       _mediaInfo = mediaInfo;
+    //     }
+    //     print("_onRequestCompleted $_state");
+    //   });
+    // }
+  }
+
 //revisar https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED, parasaber mas coodigos de error.
-  Future<void> _onRequestFailed(String? errorCode) async {
-    print(
-        "_onRequestFailed---$errorCode"); //2100 Código de estado que indica que se produjo un error en la solicitud en curso.
-    setState(() {
-      if (errorCode == "2100") {
-        _state = AppState.mediaLoaded;
-      } else {
-        _state = AppState.error;
-      }
-    });
+  Future<void> _onRequestFailed(int? errorCode) async {
+    // print(
+    //     "_onRequestFailed---$errorCode"); //2100 Código de estado que indica que se produjo un error en la solicitud en curso.
+    // setState(() {
+    //   if (errorCode == 2100) {
+    //     _state = AppState.errorMediaLoad;
+    //   } else {
+    //     _state = AppState.error;
+    //   }
+    // });
     // print(error);
   }
 }
@@ -269,4 +370,24 @@ class _RoundIconButton extends StatelessWidget {
   }
 }
 
+// 1 = playing
+// 0 = buffering
+// 5 = loading
+// 2 = finished
+// 3 = paused
+// 4 = unknown
+
 enum AppState { idle, connected, mediaLoaded, error, errorMediaLoad }
+
+enum StatusPlayer {
+  playing(1),
+  buffering(0),
+  loading(5),
+  finished(2),
+  paused(3),
+  unknown(4),
+  initLoading(7);
+
+  const StatusPlayer(this.val);
+  final int val;
+}

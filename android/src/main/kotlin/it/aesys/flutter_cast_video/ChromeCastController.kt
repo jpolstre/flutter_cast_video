@@ -47,7 +47,7 @@ class ChromeCastController(
                val contentType = args["contentType"] as? String ?: "videos/mp4"
                val liveStream = args["live"] as? Boolean ?: false
 
-               urlMedia = url
+
 
                val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
@@ -65,11 +65,20 @@ class ChromeCastController(
 
                    .setMetadata(movieMetadata)
                    .build()
-               val options = MediaLoadOptions.Builder().build()
+               //.setAutoplay(false) para que no termine al finalizar el video
+//                   .setAutoplay(false)
+               val mediaLoadOptions = MediaLoadOptions.Builder().build()
 
 //               try {
-                    //la unica forma de cachar el error es abajo en onComplete( de PendingResult.StatusListener)
-                   val request = sessionManager?.currentCastSession?.remoteMediaClient?.load(media, options)
+                    //tambien se captura los errores y resultado abajo(peor es mas dificil de gestionar) onComplete( de PendingResult.StatusListener)
+                   val request = sessionManager?.currentCastSession?.remoteMediaClient?.load(media, mediaLoadOptions)
+                    //POR FIN!!!, ESTO FUNCIONA MUY BIEN.
+                    request?.setResultCallback {
+                        println("--result callback-- ${it.status.statusCode}")//0 success, 201 error al cargar la media.
+                     //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(load) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
+
+                        channel.invokeMethod("chromeCast#requestLoadMedia", it.status.statusCode )
+                    }
                     request?.addStatusListener(this)
 //               if(dd == null){
 //                   channel.invokeMethod("chromeCast#requestDidFail", "133333")
@@ -225,18 +234,25 @@ class ChromeCastController(
             val mediaStatus: MediaStatus? = sessionManager?.currentCastSession?.remoteMediaClient?.mediaStatus
 
 
-            val playerStatus: Int = mediaStatus?.playerState ?: MediaStatus.PLAYER_STATE_UNKNOWN
+            val playerStatus: Number = mediaStatus?.playerState ?: MediaStatus.PLAYER_STATE_UNKNOWN
             val retCode: Int = if (playerStatus == MediaStatus.PLAYER_STATE_PLAYING) {
                 1
             } else if (playerStatus == MediaStatus.PLAYER_STATE_BUFFERING) {
                 0
-            } else if (playerStatus == MediaStatus.PLAYER_STATE_IDLE && mediaStatus?.idleReason == MediaStatus.IDLE_REASON_FINISHED) {
+            }
+            else if (playerStatus == MediaStatus.PLAYER_STATE_LOADING) {
+                5
+            } else if (playerStatus == MediaStatus.COMMAND_QUEUE_NEXT.toInt()) {
+                6
+            }
+            else if (playerStatus == MediaStatus.PLAYER_STATE_IDLE && mediaStatus?.idleReason == MediaStatus.IDLE_REASON_FINISHED) {
                 2
             }else if (playerStatus == MediaStatus.PLAYER_STATE_PAUSED){
                 3
             }else {
-                4 //error or unkonwn
+                4 //error or unknown
             }
+
             channel.invokeMethod("chromeCast#didPlayerStatusUpdated", retCode)
         }
         //no funchona al hacer
@@ -256,9 +272,9 @@ class ChromeCastController(
     }
 
     // Flutter methods handling
-    private var urlMedia:String? = null
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-          urlMedia = null
+
         when(call.method) {
             "chromeCast#wait" -> result.success(null)
             "chromeCast#loadMedia" -> {
@@ -356,18 +372,23 @@ class ChromeCastController(
     // PendingResult.StatusListener
 
     // pertenece a la clase PendingResult.StatusListener
+
+
     override fun onComplete(status: Status) {
 
         if (status.isSuccess) {
-            //println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
-            channel.invokeMethod("chromeCast#requestDidComplete", urlMedia)
-        }else{//isCanceled and isInterrupt
-            //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(loadMedia) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
-            //status.statusCode
-           // println("--status.statusCode fail-- ${ status.statusCode.toString()}")//2100 Código de estado que indica que se produjo un error en la solicitud en curso.
-            channel.invokeMethod("chromeCast#requestDidFail", status.statusCode.toString())//2100
 
+            //println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
+            channel.invokeMethod("chromeCast#requestDidComplete",  status.statusCode)
         }
+
+//        else{//isCanceled and isInterrupt
+//            //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(loadMedia) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
+//            //status.statusCode
+//           // println("--status.statusCode fail-- ${ status.statusCode.toString()}")//2100 Código de estado que indica que se produjo un error en la solicitud en curso.
+//            channel.invokeMethod("chromeCast#requestDidFail", status.statusCode.toString())//2100
+//
+//        }
 
 //        else if(status.isCanceled){
 //            println("--status.statusCode fail isCanceled-- ${ status.statusCode.toString()}")

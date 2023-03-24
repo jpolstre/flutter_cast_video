@@ -26,10 +26,10 @@ class SessionEndedEvent extends ChromeCastEvent {
 
 /// An event fired when a request of a [id] completed.
 class RequestDidCompleteEvent extends ChromeCastEvent {
-  final String? myCodeSuccess;
+  final int? codeOncomplete;
 
   /// Build a RequestDidComplete Event triggered from the button represented by `id`.
-  RequestDidCompleteEvent(int id, this.myCodeSuccess) : super(id);
+  RequestDidCompleteEvent(int id, this.codeOncomplete) : super(id);
 }
 
 /// An event fired when a player status of a [id] updated.
@@ -44,8 +44,17 @@ class PlayerStatusDidUpdatedEvent extends ChromeCastEvent {
 /// An event fired when a request of a [id] failed.
 class RequestDidFailEvent extends ChromeCastEvent {
   /// The error message.
-  final String? error;
+  final int? codeError;
 
   /// Build a RequestDidFail Event triggered from the button represented by `id`.
-  RequestDidFailEvent(int id, this.error) : super(id);
+  RequestDidFailEvent(int id, this.codeError) : super(id);
+}
+
+/// An event fired when a request of a [id] failed.
+class RequestDidOnLoadMedia extends ChromeCastEvent {
+  /// The error message.
+  final int? codeResult;
+
+  /// Build a RequestDidFail Event triggered from the button represented by `id`.
+  RequestDidOnLoadMedia(int id, this.codeResult) : super(id);
 }
