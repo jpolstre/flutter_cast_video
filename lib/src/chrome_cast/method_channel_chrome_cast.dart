@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_cast_video/flutter_cast_video.dart';
+// import 'package:flutter_cast_video/flutter_cast_video.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_platform.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -84,13 +84,14 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   @override
   Future<void> loadMedia(
       String url, String title, String subtitle, String image,
-      {bool? live, required int id}) {
+      {bool? live, Map<String, String>? headers, required int id}) {
     final Map<String, dynamic> args = {
       'url': url,
       'title': title,
       'subtitle': subtitle,
       'image': image,
-      'live': live
+      'live': live,
+      'headers': headers,
     };
     return channel(id)!.invokeMethod<void>('chromeCast#loadMedia', args);
   }

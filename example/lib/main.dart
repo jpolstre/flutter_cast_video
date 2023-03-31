@@ -67,6 +67,27 @@ class _CastSampleState extends State<CastSample> {
     );
   }
 
+  final userAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36';
+
+  Map<String, String> get headers => {
+        'sec-ch-ua':
+            '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site',
+        'User-Agent':
+            userAgent, //'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
+        'Pragma': 'no-cache', 'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache',
+        // 'Origin': 'https://sbanh.com',
+        // 'Referer': 'https://sbanh.com/',
+        'Origin': 'https://sblongvu.com',
+        'Referer': 'https://sblongvu.com/',
+      };
+
   @override
   void dispose() {
     super.dispose();
@@ -89,22 +110,26 @@ class _CastSampleState extends State<CastSample> {
             SizedBox(height: 24),
             TextButton(
                 onPressed: () => _loadMedia(
-                    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                    title: "TestTitle",
-                    subtitle: "test Sub title",
-                    image:
-                        "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                      title: "TestTitle",
+                      subtitle: "test Sub title",
+                      image:
+                          "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
+                      headers: headers, //ok
+                    ),
                 child: Text("load media")),
             SizedBox(
               height: 24,
             ),
             TextButton(
                 onPressed: () => _loadMedia(
-                    'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
-                    title: "TestTitle",
-                    subtitle: "test Sub title",
-                    image:
-                        "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                      'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+                      title: "TestTitle",
+                      subtitle: "test Sub title",
+                      image:
+                          "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
+                      headers: headers,
+                    ),
                 child: Text("change media"))
           ],
         ); //Text('No media loaded');
@@ -183,20 +208,24 @@ class _CastSampleState extends State<CastSample> {
       SizedBox(height: 20),
       TextButton(
           onPressed: () => _loadMedia(
-              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-              title: "TestTitle",
-              subtitle: "test Sub title",
-              image:
-                  "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                title: "TestTitle",
+                subtitle: "test Sub title",
+                image:
+                    "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
+                headers: headers,
+              ),
           child: Text("load media")),
       SizedBox(height: 20),
       TextButton(
           onPressed: () => _loadMedia(
-              'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
-              title: "TestTitle",
-              subtitle: "test Sub title",
-              image:
-                  "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg"),
+                'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+                title: "TestTitle",
+                subtitle: "test Sub title",
+                image:
+                    "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
+                headers: headers,
+              ),
           child: Text("change media"))
     ]);
   }
@@ -222,7 +251,8 @@ class _CastSampleState extends State<CastSample> {
   Future<void> _loadMedia(String url,
       {required String title,
       required String subtitle,
-      required String image}) async {
+      required String image,
+      Map<String, String>? headers}) async {
     setState(() {
       _statusPlayer = StatusPlayer.initLoading.val;
     });
@@ -230,8 +260,13 @@ class _CastSampleState extends State<CastSample> {
     duration = null;
     resetTimer();
     currUrlMedia = url;
-    await _controller.loadMedia(url,
-        title: title, subtitle: subtitle, image: image);
+    await _controller.loadMedia(
+      url,
+      title: title,
+      subtitle: subtitle,
+      image: image,
+      headers: headers,
+    );
   }
 
   void resetTimer() {
