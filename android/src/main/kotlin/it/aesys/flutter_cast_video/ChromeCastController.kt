@@ -63,7 +63,7 @@ class ChromeCastController(
                headers.forEach{
                    customData.put(it.key.toString(), it.value.toString())
                }
-               println("customData--->${customData}")
+//               println("customData--->${customData}")
 
 
                val media = MediaInfo
@@ -83,7 +83,7 @@ class ChromeCastController(
                    val request = sessionManager?.currentCastSession?.remoteMediaClient?.load(media, mediaLoadOptions)
                     //POR FIN!!!, ESTO FUNCIONA MUY BIEN.
                     request?.setResultCallback {
-                        println("--result callback-- ${it.status.statusCode}")//0 success, 201 error al cargar la media.
+//                        println("--result callback-- ${it.status.statusCode}")//0 success, 201 error al cargar la media.
                      //ok revisar aqui los posibles codiogos de error al tratar de enviar achormecast(load) : https://developers.google.com/android/reference/com/google/android/gms/cast/CastStatusCodes#FAILED
 
                         channel.invokeMethod("chromeCast#requestLoadMedia", it.status.statusCode )

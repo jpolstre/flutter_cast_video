@@ -2,7 +2,7 @@ group 'it.aesys.flutter_cast_video'
 version '1.2-ENABLEMEDIA'
 
 buildscript {
-    ext.kotlinVersion = "1.7.10"
+    ext.kotlinVersion = "1.8.0"
     ext.gradleVersion = "7.4.0"
     repositories {
         google()
@@ -40,8 +40,8 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     //ChromeCast dependencies
-    implementation 'com.google.android.material:material:1.6.1'
-    implementation 'com.google.android.gms:play-services-cast-framework:21.2.0'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.gms:play-services-cast-framework:21.3.0'
 }
