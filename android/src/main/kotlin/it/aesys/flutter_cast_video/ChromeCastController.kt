@@ -21,7 +21,7 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
-import org.json.JSONObject
+//import org.json.JSONObject
 
 
 class ChromeCastController(
@@ -48,7 +48,7 @@ class ChromeCastController(
                val contentType = args["contentType"] as? String ?: "videos/mp4"
                val liveStream = args["live"] as? Boolean ?: false
 
-               val headers = args["headers"] as? Map<*, *> ?: mapOf<String, String>()
+
 
                val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
@@ -56,13 +56,19 @@ class ChromeCastController(
 
                movieMetadata.putString(MediaMetadata.KEY_TITLE, title)
                movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, subtitle)
-               movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
+
+               if(imageUrl!=""){
+
+                    movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
+               }
+
                //movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
                //headers
-               val customData = JSONObject()
-               headers.forEach{
-                   customData.put(it.key.toString(), it.value.toString())
-               }
+               //val headers = args["headers"] as? Map<*, *> ?: mapOf<String, String>()
+//               val customData = JSONObject()
+//               headers.forEach{
+//                   customData.put(it.key.toString(), it.value.toString())
+//               }
 //               println("customData--->${customData}")
 
 
@@ -72,7 +78,7 @@ class ChromeCastController(
                    .setContentType(contentType)
                    .setMetadata(movieMetadata)
 
-                   .setCustomData(customData)
+//                   .setCustomData(customData)//set headers
                    .build()
                //.setAutoplay(false) para que no termine al finalizar el video
 //                   .setAutoplay(false)
@@ -210,6 +216,7 @@ class ChromeCastController(
             val request = sessionManager?.currentCastSession?.remoteMediaClient?.setStreamVolume(volume ?: 0.0)
             request?.addStatusListener(this)
         }
+
     }
 
     private fun getVolume() = sessionManager?.currentCastSession?.volume ?: 0.0

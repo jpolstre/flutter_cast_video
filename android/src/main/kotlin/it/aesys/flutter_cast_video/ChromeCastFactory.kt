@@ -1,6 +1,6 @@
 package it.aesys.flutter_cast_video
 
-import android.app.Activity
+//import android.app.Activity
 import android.content.Context
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.platform.PlatformViewFactory
