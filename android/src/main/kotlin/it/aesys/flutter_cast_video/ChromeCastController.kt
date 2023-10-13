@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 
 import android.net.Uri
+import android.util.Log
 import android.view.ContextThemeWrapper
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.*
@@ -47,21 +48,18 @@ class ChromeCastController(
                val imageUrl = args["image"] as? String ?: ""
                val contentType = args["contentType"] as? String ?: "videos/mp4"
                val liveStream = args["live"] as? Boolean ?: false
+               val mediaType = args["mediaType"] as? Int ?: MediaMetadata.MEDIA_TYPE_MOVIE
 
 
-
-               val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
-
+               val movieMetadata = MediaMetadata(mediaType)
                val streamType = if (liveStream) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
 
                movieMetadata.putString(MediaMetadata.KEY_TITLE, title)
                movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, subtitle)
-
-               if(imageUrl!=""){
-
-                    movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
-               }
-
+//               Log.i("args load media", args.toString())
+                    if(imageUrl!=""){
+                        movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
+                    }
                //movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
                //headers
                //val headers = args["headers"] as? Map<*, *> ?: mapOf<String, String>()
@@ -199,9 +197,9 @@ class ChromeCastController(
             meta?.let {
                 info["title"] = meta.getString(MediaMetadata.KEY_TITLE) ?: ""
                 info["subtitle"] = meta.getString(MediaMetadata.KEY_SUBTITLE) ?: ""
-                val imgs = meta.images
-                if (imgs.size > 0){
-                    info["image"] = imgs[0].url.toString()
+                val images = meta.images
+                if (images.size > 0){
+                    info["image"] = images[0].url.toString()
                 }
             }
         }
@@ -394,7 +392,7 @@ class ChromeCastController(
 
         if (status.isSuccess) {
 
-            //println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
+//            println("--status.statusCode isSuccess-- ${ status.statusCode.toString()}")//0 is sucess
             channel.invokeMethod("chromeCast#requestDidComplete",  status.statusCode)
         }
 

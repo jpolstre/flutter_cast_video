@@ -2,6 +2,19 @@ part of flutter_cast_video;
 
 final ChromeCastPlatform _chromeCastPlatform = ChromeCastPlatform.instance;
 
+enum MediaType {
+  MEDIA_TYPE_GENERIC(0),
+  MEDIA_TYPE_MOVIE(1),
+  MEDIA_TYPE_TV_SHOW(2),
+  MEDIA_TYPE_MUSIC_TRACK(3),
+  MEDIA_TYPE_PHOTO(4),
+  MEDIA_TYPE_AUDIOBOOK_CHAPTER(5),
+  MEDIA_TYPE_USER(100);
+
+  const MediaType(this.val);
+  final int val;
+}
+
 /// Controller for a single ChromeCastButton instance running on the host platform.
 class ChromeCastController {
   /// The id for this controller
@@ -26,14 +39,17 @@ class ChromeCastController {
   }
 
   /// Load a new media by providing an [url].
-  Future<void> loadMedia(String url,
-      {String title = '',
-      String subtitle = '',
-      String image = '',
-      bool? live,
-      Map<String, String>? headers}) {
+  Future<void> loadMedia(
+    String url, {
+    String title = '',
+    String subtitle = '',
+    String image = '',
+    bool? live,
+    Map<String, String>? headers,
+    MediaType? mediaType,
+  }) {
     return _chromeCastPlatform.loadMedia(url, title, subtitle, image,
-        id: id, live: live, headers: headers);
+        id: id, live: live, headers: headers, mediaType: mediaType);
   }
 
   /// Plays the video playback.

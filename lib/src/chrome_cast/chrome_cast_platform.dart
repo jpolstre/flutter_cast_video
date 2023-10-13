@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cast_video/flutter_cast_video.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/method_channel_chrome_cast.dart';
 
@@ -69,6 +70,7 @@ abstract class ChromeCastPlatform {
     String image, {
     bool? live,
     Map<String, String>? headers,
+    MediaType? mediaType,
     required int id,
   }) {
     throw UnimplementedError('loadMedia() has not been implemented.');
