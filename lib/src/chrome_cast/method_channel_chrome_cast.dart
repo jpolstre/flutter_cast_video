@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cast_video/flutter_cast_video.dart';
 // import 'package:flutter_cast_video/flutter_cast_video.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_platform.dart';
@@ -56,6 +57,19 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
     return _events(id).whereType<SessionStartedEvent>();
   }
 
+  //ad methods
+  @override
+  Stream<SessionStartingEvent> onSessionStarting({int? id}) {
+    return _events(id).whereType<SessionStartingEvent>();
+  }
+
+  @override
+  Stream<SessionStartFailedEvent> onSessionStartFailed({int? id}) {
+    return _events(id).whereType<SessionStartFailedEvent>();
+  }
+
+  //end ad methods
+
   @override
   Stream<SessionEndedEvent> onSessionEnded({int? id}) {
     return _events(id).whereType<SessionEndedEvent>();
@@ -84,7 +98,10 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   @override
   Future<void> loadMedia(
       String url, String title, String subtitle, String image,
-      {bool? live, Map<String, String>? headers, required int id}) {
+      {bool? live,
+      Map<String, String>? headers,
+      MediaType? mediaType,
+      required int id}) {
     final Map<String, dynamic> args = {
       'url': url,
       'title': title,
@@ -92,6 +109,7 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
       'image': image,
       'live': live,
       'headers': headers,
+      'mediaType': mediaType?.val,
     };
     return channel(id)!.invokeMethod<void>('chromeCast#loadMedia', args);
   }
@@ -174,6 +192,16 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
       case 'chromeCast#didStartSession':
         _eventStreamController.add(SessionStartedEvent(id));
         break;
+      //added methods
+      case 'chromeCast#didStartingSession':
+        _eventStreamController.add(SessionStartingEvent(id));
+        break;
+      case 'chromeCast#didSessionStartFailed':
+        _eventStreamController.add(SessionStartFailedEvent(id));
+        break;
+
+      //end added methods
+
       case 'chromeCast#didEndSession':
         _eventStreamController.add(SessionEndedEvent(id));
         break;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cast_video/flutter_cast_video.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/method_channel_chrome_cast.dart';
 
@@ -35,6 +36,17 @@ abstract class ChromeCastPlatform {
     throw UnimplementedError('onSessionStarted() has not been implemented.');
   }
 
+  //ad methods
+  Stream<SessionStartingEvent> onSessionStarting({required int id}) {
+    throw UnimplementedError('onSessionStarting() has not been implemented.');
+  }
+
+  Stream<SessionStartFailedEvent> onSessionStartFailed({required int id}) {
+    throw UnimplementedError('onSessionStartFailed() has not been implemented.');
+  }
+
+  //end ad methods
+
   /// A session is ended.
   Stream<SessionEndedEvent> onSessionEnded({required int id}) {
     throw UnimplementedError('onSessionEnded() has not been implemented.');
@@ -69,6 +81,7 @@ abstract class ChromeCastPlatform {
     String image, {
     bool? live,
     Map<String, String>? headers,
+    MediaType? mediaType,
     required int id,
   }) {
     throw UnimplementedError('loadMedia() has not been implemented.');

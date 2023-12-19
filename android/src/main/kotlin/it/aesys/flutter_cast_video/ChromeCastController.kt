@@ -21,6 +21,8 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
+import org.json.JSONObject
+
 //import org.json.JSONObject
 
 
@@ -47,10 +49,8 @@ class ChromeCastController(
                val imageUrl = args["image"] as? String ?: ""
                val contentType = args["contentType"] as? String ?: "videos/mp4"
                val liveStream = args["live"] as? Boolean ?: false
-
-
-
-               val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
+               val mediaType = args["mediaType"] as? Int ?: MediaMetadata.MEDIA_TYPE_MOVIE
+               val movieMetadata = MediaMetadata(mediaType)
 
                val streamType = if (liveStream) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
 
@@ -64,7 +64,7 @@ class ChromeCastController(
 
                //movieMetadata.addImage(WebImage(Uri.parse(imageUrl)))
                //headers
-               //val headers = args["headers"] as? Map<*, *> ?: mapOf<String, String>()
+//               val headers = args["headers"] as? Map<*, *> ?: mapOf<String, String>()
 //               val customData = JSONObject()
 //               headers.forEach{
 //                   customData.put(it.key.toString(), it.value.toString())
@@ -77,7 +77,6 @@ class ChromeCastController(
                    .setStreamType(streamType)
                    .setContentType(contentType)
                    .setMetadata(movieMetadata)
-
 //                   .setCustomData(customData)//set headers
                    .build()
                //.setAutoplay(false) para que no termine al finalizar el video
@@ -373,7 +372,7 @@ class ChromeCastController(
     }
 
     override fun onSessionStarting(p0: Session) {
-
+        channel.invokeMethod("chromeCast#didStartingSession", null)
     }
 
     override fun onSessionEnding(p0: Session) {
@@ -381,7 +380,7 @@ class ChromeCastController(
     }
 
     override fun onSessionStartFailed(p0: Session, p1: Int) {
-
+        channel.invokeMethod("chromeCast#didSessionStartFailed", null)
     }
 
 

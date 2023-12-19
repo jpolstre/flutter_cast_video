@@ -23,6 +23,11 @@ class ChromeCastButton extends StatelessWidget {
     this.color = Colors.black,
     this.onButtonCreated,
     this.onSessionStarted,
+    //ad methods
+    this.onSessionStarting,
+    this.onSessionStartFailed,
+
+    //end ad methods
     this.onSessionEnded,
     this.onRequestCompleted,
     this.onRequestFailed,
@@ -48,6 +53,12 @@ class ChromeCastButton extends StatelessWidget {
 
   /// Called when a cast session has started.
   final VoidCallback? onSessionStarted;
+
+  //ad methods
+  final VoidCallback? onSessionStarting;
+  final VoidCallback? onSessionStartFailed;
+
+  //end ad methods
 
   /// Called when a cast session has ended.
   final VoidCallback? onSessionEnded;
@@ -89,6 +100,19 @@ class ChromeCastButton extends StatelessWidget {
           .onSessionStarted(id: id)
           .listen((_) => onSessionStarted!());
     }
+    //ad methods
+    if (onSessionStarting != null) {
+      _chromeCastPlatform
+          .onSessionStarting(id: id)
+          .listen((_) => onSessionStarting!());
+    }
+    if (onSessionStartFailed != null) {
+      _chromeCastPlatform
+          .onSessionStartFailed(id: id)
+          .listen((_) => onSessionStartFailed!());
+    }
+    //end ad methods
+
     if (onSessionEnded != null) {
       _chromeCastPlatform
           .onSessionEnded(id: id)

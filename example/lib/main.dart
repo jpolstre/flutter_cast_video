@@ -20,7 +20,11 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: CastSample());
+    return MaterialApp(
+        theme: ThemeData(
+          useMaterial3: false,
+        ),
+        home: CastSample());
   }
 }
 
@@ -35,6 +39,8 @@ class _CastSampleState extends State<CastSample> {
   late ChromeCastController _controller;
   AppState _state = AppState.idle;
   bool _playing = false;
+  bool _onConnectLoading = false;
+
   Map<dynamic, dynamic> _mediaInfo = {};
 
   @override
@@ -52,14 +58,19 @@ class _CastSampleState extends State<CastSample> {
           ),
           ChromeCastButton(
             size: CastSample._iconSize,
-            color: Colors.white,
+            color: Colors.black,
             onButtonCreated: _onButtonCreated,
             onSessionStarted: _onSessionStarted,
+            //ad methods
+            onSessionStarting: _onSessionStarting,
+            onSessionStartFailed: _onSessionStartFailed,
+            //end ad methods
             onSessionEnded: () => setState(() => _state = AppState.idle),
             onRequestCompleted: _onRequestCompleted,
             onRequestFailed: _onRequestFailed,
             onRequestLoadMedia: _onRequestLoadMedia,
             onPlayerStatusUpdated: _onPlayerStatusUpdated,
+            
           ),
         ],
       ),
@@ -70,7 +81,7 @@ class _CastSampleState extends State<CastSample> {
   final userAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36';
 
-  Map<String, String> get headers => {
+  /*Map<String, String> get headers => {
         'sec-ch-ua':
             '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
         'sec-ch-ua-mobile': '?0',
@@ -86,7 +97,7 @@ class _CastSampleState extends State<CastSample> {
         // 'Referer': 'https://sbanh.com/',
         'Origin': 'https://sblongvu.com',
         'Referer': 'https://sblongvu.com/',
-      };
+      };*/
 
   @override
   void dispose() {
@@ -98,43 +109,52 @@ class _CastSampleState extends State<CastSample> {
     switch (_state) {
       case AppState.idle:
         resetTimer();
-        return Text('ChromeCast not connected');
+        return _onConnectLoading
+            //excelente funciona!!!
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                    CircularProgressIndicator(
+                      color: Colors.redAccent,
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text('Conectando...')
+                  ])
+            : Text('ChromeCast not connected');
       case AppState.connected:
       case AppState.error:
       case AppState.errorMediaLoad:
-        return Column(
-          children: [
-            SizedBox(height: 24),
-            if (_state == AppState.error || _state == AppState.errorMediaLoad)
-              Text('An error has occurred'),
-            SizedBox(height: 24),
-            TextButton(
-                onPressed: () => _loadMedia(
-                      '"https://ffd6b8be926aef8829d33ff45c1e98486b885ff8ae277014f9bfa81-apidata.googleusercontent.com/download/storage/v1/b/bisco-01/o/5fabb1866dc51d7b5d8698b8.mp4?jk=Ac_6HjJHlT11QemYiZlGZsquSvO7ZtWDfUDCjFVkli21uPWO6YN25wAH8mwopEG-kJ8XiA3p00J_kbxLhcMN_PqlcxOH04tiLjCl0ycuzRGjL3qA6lrMOVPNyqrlO7JdFSPXQpCBWxOIlpE9Vrt56CaSeWshhvjKWDk_3ek-NnkhvBHM7O5vtnwjuNCvzTgkOWi0OoT9grL3cliW-MxmGfCl1JVzNW0rvO3u02paO-oKjxKf2FxQee-5BWFK2JPq69e0o8ec-O7N6nqYESPH6pFqBdXxkKVIFAx9FyEMAmTsIYf-oUpV8nToU2POaRws8zDqbbq79Q9a7DFnTdeaK8UENCRzZ7Rkzsi_4bRy1Xfp8dghEEpflQ2trEmxGgCQxppGs6TOfBUbU9OG-InrEn1tR6IRRfhS_xYcI_RtriNSHcw19bevbCx3cN5hfoL1sPz-QPP2ORido7w86SpIPHO-BKD2o91fySCOJV7McEKUabCCo_AzxA28v2FqwKH1NoCkz5CBZ0Cpv1HGornnjmwirxeKxL5itl4Rg8mWip8Jh6KSj-9HIpIf_5szeOlka1reO92aIgivbm5zzgaT-xqqf52wS_NIQGMlYO1q7SA9ALN9uzAh9bhhjDUU-ZBQH0bcJhP0y3CyiQ5cyDEi2iBeduj6V1cyX34za6v-VstJnNpTV1Yond4kiduopakdtubmwc_E6V90lofpsq1P0fFTZ7NLnvMfJFNIqnCJQnTvQLKomS7A1l5908yKZBXPaXhN8EvUBrrNDAOXaHUYa2YjiHcHIV2W6ihi1r507-tRxTz5cywq_OhhU2fIjF1ZF8MGsHRneoRGYTkN29_57VXx6222FUQ03yB_EOgjSADQYu_-tTeOFaiCczOmNh2rmpy-5Yt-5eCwtggehrHc3kpxNkKLL48lQQeX-LWZNBc4kBITC7dWqR6d-rtdWUXtCswolrzUBiXhUGbBXo8Vx1m-L5klNnbyR9pcW6MVFlqb0GKPeAvy4TW3RoeTj6pzj36I0yXHbPXum5KxOzS3JTcjtjGNCSJ7oP_AD4BWAohVEiYovYmk2brM1o243gBXgaQN0X2zJJ8xEC_nRPfTgn9uHyVFRgvv-qry2rd7M4-QoA2KsRPSTTMF6NCZMUKlXEEMLAnNfMZbp_ZH6JLvxVNWnsyb0l3jb3m1jEyNOBvKqRDi3r8GXdaqbnJQm5qMcfFlKbGM7aNA-CiwFw&isca=1',
-                      title: "TestTitle",
-                      subtitle: "test Sub title",
-                      image:
-                          "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
-                      headers: headers, //ok
-                    ),
-                child: Text("load media")),
-            SizedBox(
-              height: 24,
-            ),
-            TextButton(
-                onPressed: () => _loadMedia(
-                      'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
-                      title: "TestTitle",
-                      subtitle: "test Sub title",
-                      // image:
-                      //     "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
-                      image:
-                          "https://image.tmdb.org/t/p/w185/dSAwFZkpOS2JMBujkfKcxcWwM3Y.jpg",
-                      headers: headers,
-                    ),
-                child: Text("change media"))
-          ],
-        ); //Text('No media loaded');
+        return _onConnectLoading
+            //por si acasop
+            ? CircularProgressIndicator(
+                color: Colors.redAccent,
+              )
+            : Column(
+                children: [
+                  SizedBox(height: 24),
+                  if (_state == AppState.error ||
+                      _state == AppState.errorMediaLoad)
+                    Text('An error has occurred'),
+                  SizedBox(height: 24),
+                  SizedBox(
+                    height: 24,
+                  ),
+                  TextButton(
+                      onPressed: () => _loadMedia(
+                            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                            title: "TestTitle",
+                            subtitle: "test Sub title",
+                            image:
+                                "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
+
+                            // headers: headers,
+                          ),
+                      child: Text("load media"))
+                ],
+              ); //Text('No media loaded');
       case AppState.mediaLoaded:
         startTimer();
         return _mediaControls();
@@ -210,16 +230,21 @@ class _CastSampleState extends State<CastSample> {
       SizedBox(height: 20),
       TextButton(
           onPressed: () => _loadMedia(
-                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                // 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+                'https://stream.zeno.fm/pnwpbyfambruv',
                 title: "TestTitle",
                 subtitle: "test Sub title",
                 image:
                     "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
-                headers: headers,
+                mediaType: MediaType.MEDIA_TYPE_MUSIC_TRACK,
+                live: true,
+                // image:
+                //     "https://image.tmdb.org/t/p/w185/dSAwFZkpOS2JMBujkfKcxcWwM3Y.jpg",
+                // headers: headers,
               ),
-          child: Text("load media")),
+          child: Text("load audio")),
       SizedBox(height: 20),
-      TextButton(
+      /*TextButton(
           onPressed: () => _loadMedia(
                 'https://ff9ed356d26371a77c28c61f264979f5a8ce4f9bf9f29181112fa8d-apidata.googleusercontent.com/download/storage/v1/b/bisco-01/o/5fabb18c6dc51d7b5d8698bb.mp4?jk=ARTXCFGqHQ-WeEHjOHkvuTP8zA9mtSG1pQQamzljv66FhV2EnndXxTBxB63aIMAHO_B8ATxEjAavVhpTrK1G81NEKx3ekhncNaW1RqAt_K8wC0vhn_R6AUZVxEAgHJ0Uhrs9FEUW9zbm7zAE61-AT7d7iLxErZqEwTOx8uBYEvXA1gnIdkBjvwajpaWjNU1VdUDkkMur24ihr5h3fBfa6Hbwpbsvjx6UL2VZGIG0WFby8JReKSw7fG9csc-I3lioJPGCUSixIWh9WQBIEbffCzg9zKixkq5PaLuDWlx_reCCuHFCvqNIJtBbzJBD0tcdTZaaYxy4puHNrWbJJpKoqnAi_XAvPtGbiWEAf2Z_CJoxJqVZBbflca61Shgxe85-vhDy4vl7RczBHJHXVnfjyHzQqCAJTxJfPQTNxmcINGNUFiFthlADRchOxWxBOhTvit4Rm606wg5E9HkSHVXdPfK6SN4elX8ftFkgujQFdUpkrAWbqFylqU7Obx7HQBybvfVPxFFHtkXO1Crng82yl8sPbl0MfWfu3xMkafJwKj9oHgV03ERABBIduHjf7lZ3trKvdUm1JdlirnMKWI4oX6aSFhiiZSjxqxDcaDm6y6rLMh39wpR4Y0eQh6MNVlQR9Wx43A5T_Vya_VvJDpq175EvTbHFVw7vLrN-gCf-N0RoBV9nFswT6kQC6pDFojQwDNk_fbHP5pnpyfWTLv2JEeXLaguycQabqeqrO7ux9KsxVYg4AMVX5l7sDc06gdEyb9_AML4TbezIY4e7XfRe0GRJHMK-Wk9MzjyKvnQ6uy8f3XAZrUlCOqiW55b4t-R0dwGItsuqewllYpUIcDGzZCcMJRmxqXndoeAkYhRCJcOrZZ0bqtqKdJUP6ULfIsEEJgpUmqUb4lmwAeqXig6v8PQbo7sRbHDwSvyTCcl4tt0Q8XtqVS6HNWi43QBq8CkZuAZ_mK528RlbHBuisl0j7PTV4x2Y0aOSnHTXZIlb3wDTPZ2ReNLPKkDT74WiRDbGxRI1JU0bkFerNt3NSaT9qDS5D17CrGwjuaXRZ5SZV_hBYZIAsF-QO06P9MnkgfL3wVbKOw5Ngus5w-1uAG4LsLvVHHu-3OjHnuc2CdLQaY8M0_t3bG-D016ndYGJNhxNqsmxcLKBbMhe2lIKg67XeDijn3lYjbn-kM9Pqw4UNWpdAHsKuHaxQ2-FewPkXt1x_AtvTaZQcjwyIM_65g&isca=1',
                 title: "TestTitle",
@@ -228,7 +253,7 @@ class _CastSampleState extends State<CastSample> {
                     "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg",
                 // headers: headers,
               ),
-          child: Text("change media"))
+          child: Text("change media"))*/
     ]);
   }
 
@@ -250,11 +275,15 @@ class _CastSampleState extends State<CastSample> {
   }
 
   String? currUrlMedia;
-  Future<void> _loadMedia(String url,
-      {required String title,
-      required String subtitle,
-      required String image,
-      Map<String, String>? headers}) async {
+  Future<void> _loadMedia(
+    String url, {
+    required String title,
+    required String subtitle,
+    required String image,
+    Map<String, String>? headers,
+    MediaType? mediaType,
+    bool? live,
+  }) async {
     setState(() {
       _statusPlayer = StatusPlayer.initLoading.val;
     });
@@ -268,6 +297,8 @@ class _CastSampleState extends State<CastSample> {
       subtitle: subtitle,
       image: image,
       headers: headers,
+      mediaType: mediaType,
+      live: live,
     );
   }
 
@@ -305,7 +336,35 @@ class _CastSampleState extends State<CastSample> {
 
   Future<void> _onSessionStarted() async {
     print("_onRequestCompleted $_state");
-    setState(() => _state = AppState.connected);
+    setState(() {
+      _state = AppState.connected;
+      _onConnectLoading = false;
+    });
+
+    // await _loadMedia(
+    //     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    //     title: "TestTitle",
+    //     subtitle: "test Sub title",
+    //     image:
+    //         "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
+  }
+
+  Future<void> _onSessionStarting() async {
+    print("_onSessionStarting ");
+    // tratando de conectar a chrome cast
+    setState(() => _onConnectLoading = true);
+
+    // await _loadMedia(
+    //     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    //     title: "TestTitle",
+    //     subtitle: "test Sub title",
+    //     image:
+    //         "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg");
+  }
+
+  Future<void> _onSessionStartFailed() async {
+    print("_onSessionStartFailed");
+    setState(() => _onConnectLoading = false);
 
     // await _loadMedia(
     //     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',

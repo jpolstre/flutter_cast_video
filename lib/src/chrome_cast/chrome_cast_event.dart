@@ -18,6 +18,20 @@ class SessionStartedEvent extends ChromeCastEvent {
   SessionStartedEvent(int id) : super(id);
 }
 
+//add methods
+/// An event fired when a session of a [id] started.
+class SessionStartingEvent extends ChromeCastEvent {
+  /// Build a SessionStarted Event triggered from the button represented by `id`.
+  SessionStartingEvent(int id) : super(id);
+}
+
+class SessionStartFailedEvent extends ChromeCastEvent {
+  /// Build a SessionStarted Event triggered from the button represented by `id`.
+  SessionStartFailedEvent(int id) : super(id);
+}
+
+//end add methods
+
 /// An event fired when a session of a [id] ended.
 class SessionEndedEvent extends ChromeCastEvent {
   /// Build a SessionEnded Event triggered from the button represented by `id`.
