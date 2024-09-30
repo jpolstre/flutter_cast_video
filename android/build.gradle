@@ -32,12 +32,12 @@ android {
         Consider using JVM toolchain: https://kotl.in/gradle/jvm/toolchain
     
      */
-  compileOptions {
+    compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = '1.8'
     }
 
     /*
