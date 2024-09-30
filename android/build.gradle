@@ -26,6 +26,22 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    /*
+    para AGP 8.x.x
+    en el proyecto principal(el que llama a este plugin) revisar android/settings.gradle
+    plugins {
+        id "com.android.application" version "8.1.0" apply false--->AGP 8.1.0
+        en tonces hay que colocar el namespace todos los plugins < 8.x.x
+        id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+    }
+
+    suele pedir tambien que la app principal cabie a:
+        compileSdkVersion 34
+        targetSdkVersion 34
+ en apprpincipal/android/app/build.gradle
+    */
+    namespace 'it.aesys.flutter_cast_video'
+
     compileSdkVersion 31
 
     sourceSets {
