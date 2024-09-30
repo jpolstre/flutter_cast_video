@@ -27,6 +27,20 @@ apply plugin: 'kotlin-android'
 
 android {
     /*
+    solucionar erro de: 
+     'compileDebugJavaWithJavac' task (current target is 1.8) and 'compileDebugKotlin' task (current target is 17) jvm target compatibility should be set to the same Java version.
+        Consider using JVM toolchain: https://kotl.in/gradle/jvm/toolchain
+    
+     */
+  compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    /*
     para AGP 8.x.x
     en el proyecto principal(el que llama a este plugin) revisar android/settings.gradle
     plugins {
@@ -38,7 +52,7 @@ android {
     suele pedir tambien que la app principal cabie a:
         compileSdkVersion 34
         targetSdkVersion 34
- en apprpincipal/android/app/build.gradle
+ en apprpincipal/android/app/build.gradle()
     */
     namespace 'it.aesys.flutter_cast_video'
 
